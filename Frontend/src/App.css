@@ -1,0 +1,46 @@
+/* Navbar Container */
+.navbar {
+  background: linear-gradient(to right, #9333ea, #3b82f6); /* Gradient background */
+  padding: 1rem; /* Padding around the navbar */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Shadow */
+}
+
+/* Navbar Inner Container */
+.navbar-container {
+  max-width: 1200px; /* Maximum width */
+  margin: 0 auto; /* Center the container */
+  display: flex;
+  justify-content: space-between; /* Space between logo and links */
+  align-items: center; /* Center items vertically */
+}
+
+/* Logo Styling */
+.navbar-logo {
+  color: white; /* Text color */
+  font-size: 1.5rem; /* Font size */
+  font-weight: bold; /* Bold text */
+  text-decoration: none; /* Remove underline */
+  transition: color 0.3s ease; /* Smooth transition */
+}
+
+.navbar-logo:hover {
+  color: #e2e8f0; /* Lighter color on hover */
+}
+
+/* Navigation Links Container */
+.navbar-links {
+  display: flex;
+  gap: 1.5rem; /* Space between links */
+}
+
+/* Individual Link Styling */
+.navbar-link {
+  color: white; /* Text color */
+  text-decoration: none; /* Remove underline */
+  font-size: 1rem; /* Font size */
+  transition: color 0.3s ease; /* Smooth transition */
+}
+
+.navbar-link:hover {
+  color: #e2e8f0; /* Lighter color on hover */
+}
