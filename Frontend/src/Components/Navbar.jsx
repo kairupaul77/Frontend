@@ -16,11 +16,11 @@ const Navbar = () => {
           <Link to="/home" className="navbar-link">
             Home
           </Link>
-          <Link to="/cart" className="navbar-link">
-            Cart
-          </Link>
           <Link to="/menu" className="navbar-link">
             Menu
+          </Link>
+          <Link to="/cart" className="navbar-link">
+            Cart
           </Link>
           <Link to="/orders" className="navbar-link">
             Orders
