@@ -1,57 +1,47 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 
 const Checkout = () => {
-  // Sample order data
-  const orders = [
-    {
-      id: 1,
-      status: 'completed',
-      items: [
-        { name: 'Burger', quantity: 2, price: 10 },
-        { name: 'Pizza', quantity: 1, price: 15 },
-      ],
-      total: 35,
-    },
-    {
-      id: 2,
-      status: 'pending',
-      items: [
-        { name: 'Pasta', quantity: 1, price: 12 },
-        { name: 'Sushi', quantity: 3, price: 20 },
-      ],
-      total: 72,
-    },
-    {
-      id: 3,
-      status: 'completed',
-      items: [
-        { name: 'Tacos', quantity: 2, price: 8 },
-      ],
-      total: 16,
-    },
-  ];
+  const location = useLocation();
+  const cart = location.state?.cart || [];
+
+  // Calculate total price of the order
+  const totalPrice = cart.reduce(
+    (total, item) => total + item.price * (item.quantity || 1),
+    0
+  );
 
   return (
     <div className="checkout-container">
-      <h1 className="checkout-title">Order Status</h1>
-      <div className="orders-list">
-        {orders.map((order) => (
-          <div key={order.id} className={`order-card ${order.status}`}>
-            <h2 className="order-id">Order #{order.id}</h2>
-            <p className="order-status">Status: {order.status}</p>
-            <div className="order-items">
-              <h3>Items:</h3>
-              <ul>
-                {order.items.map((item, index) => (
-                  <li key={index} className="order-item">
-                    {item.name} - {item.quantity} x ${item.price}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <p className="order-total">Total: ${order.total}</p>
+      <h1 className="checkout-title">Checkout</h1>
+      <div className="checkout-summary">
+        <h3>Order Summary</h3>
+        {cart.map((item) => (
+          <div key={item.id} className="checkout-item">
+            <p>{item.name} (x{item.quantity || 1}) - ${item.price * (item.quantity || 1)}</p>
           </div>
         ))}
+        <h3 className="total-price">Total: ${totalPrice.toFixed(2)}</h3>
+      </div>
+      <div className="payment-details">
+        <h3>Payment Details</h3>
+        <form>
+          <label>
+            Card Number:
+            <input type="text" name="cardNumber" required />
+          </label>
+          <label>
+            Expiry Date:
+            <input type="text" name="expiryDate" required />
+          </label>
+          <label>
+            CVV:
+            <input type="text" name="cvv" required />
+          </label>
+          <button type="submit" className="pay-now-button">
+            Pay Now
+          </button>
+        </form>
       </div>
     </div>
   );

@@ -13,7 +13,7 @@ const Home = () => {
     >
       {/* Welcome message at the top */}
       <h2 className="text-6xl font-extrabold mb-8 text-white">
-        Welcome to Our Restaurant
+        Welcome and savor the experience
       </h2>
 
       <p className="text-center text-white mb-8 text-xl">
