@@ -8,7 +8,7 @@ const Navbar = () => {
       <div className="navbar-container">
         {/* Logo or Brand Name */}
         <Link to="/home" className="navbar-logo">
-          MyApp
+          Book A Meal
         </Link>
 
         {/* Navigation Links */}
