@@ -66,6 +66,11 @@ export default function Login() {
         <div className="register-link">
           Not yet registered? <Link to="/register">Register</Link>
         </div>
+
+        {/* Forgot Password Link */}
+        <div className="forgot-password-link">
+          <Link to="/forgot-password">Forgot Password?</Link>
+        </div>
       </form>
     </div>
   );
