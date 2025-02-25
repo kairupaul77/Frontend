@@ -1,24 +1,24 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { UserContext } from "../Context/UserContext.jsx";
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const { login, loading } = useContext(UserContext);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(""); // Store error messages
   const navigate = useNavigate();
 
-  // ====> To Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(""); // Clear previous errors
 
-    // Simulate login process
-    if (email && password) {
-      setMessage('Login successful!');
-      setTimeout(() => {
-        navigate('/dashboard'); // Redirect to dashboard after a delay
-      }, 1500);
+    const success = await login({ email, password });
+
+    if (success) {
+      navigate("/"); // Redirect to home page after login
     } else {
-      setMessage('Please fill in all fields.');
+      setError("Invalid email or password. Please try again."); // Display error
     }
   };
 
@@ -27,13 +27,14 @@ export default function Login() {
       <form onSubmit={handleSubmit} className="login-form">
         <h3 className="login-title">Login</h3>
 
+        {error && <p className="error-message">{error}</p>} {/* Show error if any */}
+
         <div className="form-group">
           <label className="form-label">
-            Email
-            <span className="required-icon">*</span>
+            Email <span className="required-icon">*</span>
           </label>
           <input
-            type="text"
+            type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="form-input"
@@ -44,8 +45,7 @@ export default function Login() {
 
         <div className="form-group">
           <label className="form-label">
-            Password
-            <span className="required-icon">*</span>
+            Password <span className="required-icon">*</span>
           </label>
           <input
             type="password"
@@ -57,17 +57,14 @@ export default function Login() {
           />
         </div>
 
-        <button type="submit" className="login-button">
-          Sign in
+        <button type="submit" className="login-button" disabled={loading}>
+          {loading ? "Signing in..." : "Sign in"}
         </button>
-
-        {message && <p className="message">{message}</p>}
 
         <div className="register-link">
           Not yet registered? <Link to="/register">Register</Link>
         </div>
 
-        {/* Forgot Password Link */}
         <div className="forgot-password-link">
           <Link to="/forgot-password">Forgot Password?</Link>
         </div>
