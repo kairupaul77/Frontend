@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './Components/Navbar';
 import Footer from './Components/Footer';
@@ -10,41 +10,55 @@ import ForgotPassword from './Pages/ForgotPassword';
 import Menu from './Pages/Menu';
 import Orders from './Pages/Orders';
 import Register from './Pages/Register';
-import Terms from './Pages/Terms'; // Import Terms component
-import Privacy from './Pages/Privacy'; // Import Privacy component
+import Terms from './Pages/Terms';
+import Privacy from './Pages/Privacy';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './index.css';
 
 function App() {
+  const [cart, setCart] = useState(() => {
+    return JSON.parse(localStorage.getItem('cart')) || [];
+  });
+
+  // Sync cart state with localStorage
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart));
+  }, [cart]);
+
+  // Function to add items to cart
+  const addToCart = (item) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((cartItem) => cartItem.id === item.id);
+      if (existingItem) {
+        return prevCart.map((cartItem) =>
+          cartItem.id === item.id
+            ? { ...cartItem, quantity: (cartItem.quantity || 1) + 1 }
+            : cartItem
+        );
+      } else {
+        return [...prevCart, { ...item, quantity: 1 }];
+      }
+    });
+  };
+
   return (
     <BrowserRouter>
-      {/* ToastContainer for global toast notifications */}
-      <ToastContainer
-        position="top-right" // Position of the toast
-        autoClose={3000} // Auto-close after 3 seconds
-        hideProgressBar={false} // Show progress bar
-        newestOnTop={false} // New toasts appear below older ones
-        closeOnClick // Close toast on click
-        rtl={false} // Left-to-right layout
-        pauseOnFocusLoss // Pause toast when window loses focus
-        draggable // Allow dragging to dismiss
-        pauseOnHover // Pause toast on hover
-      />
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="app-container">
-        <Navbar />
+        <Navbar cartCount={cart.length} />
         <div className="main-content">
           <Routes>
             <Route path="/home" element={<Home />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} /> {/* Add this route */}
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/menu" element={<Menu />} />
+            <Route path="/cart" element={<Cart cart={cart} setCart={setCart} />} />
+            <Route path="/menu" element={<Menu addToCart={addToCart} />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/orders" element={<Orders />} />
-            <Route path="/terms" element={<Terms />} /> {/* Add Terms route */}
-            <Route path="/privacy" element={<Privacy />} /> {/* Add Privacy route */}
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
           </Routes>
         </div>
         <Footer />

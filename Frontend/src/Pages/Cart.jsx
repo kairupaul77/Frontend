@@ -1,44 +1,67 @@
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Cart = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const [cart, setCart] = useState(location.state?.cart || []);
+  const LOCAL_STORAGE_KEY = "cart";
 
-  // Function to increase quantity of an item
+  // Load cart from localStorage once on mount
+  const [cart, setCart] = useState([]);
+
+  useEffect(() => {
+    const storedCart = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedCart) {
+      setCart(JSON.parse(storedCart));
+    }
+  }, []);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    if (cart.length > 0) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cart));
+    } else {
+      localStorage.removeItem(LOCAL_STORAGE_KEY); // Remove empty cart from storage
+    }
+    window.dispatchEvent(new Event("cartUpdated")); // Dispatch event to update Navbar
+  }, [cart]);
+
+  // Increase quantity of an item
   const increaseQuantity = (id) => {
-    const updatedCart = cart.map((item) =>
-      item.id === id ? { ...item, quantity: (item.quantity || 1) + 1 } : item
-    );
-    setCart(updatedCart);
+    setCart((prevCart) => {
+      const updatedCart = prevCart.map((item) =>
+        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+      );
+      return updatedCart;
+    });
   };
 
-  // Function to decrease quantity of an item
+  // Decrease quantity or remove if quantity is 1
   const decreaseQuantity = (id) => {
-    const updatedCart = cart.map((item) =>
-      item.id === id && (item.quantity || 1) > 1
-        ? { ...item, quantity: item.quantity - 1 }
-        : item
-    );
-    setCart(updatedCart);
+    setCart((prevCart) => {
+      const updatedCart = prevCart
+        .map((item) =>
+          item.id === id ? { ...item, quantity: item.quantity - 1 } : item
+        )
+        .filter((item) => item.quantity > 0); // Remove items with quantity 0
+
+      return updatedCart;
+    });
   };
 
-  // Function to remove an item from the cart
+  // Remove an item from the cart
   const removeItem = (id) => {
-    const updatedCart = cart.filter((item) => item.id !== id);
-    setCart(updatedCart);
+    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
   };
 
-  // Calculate total price of the cart
+  // Calculate total price
   const totalPrice = cart.reduce(
-    (total, item) => total + item.price * (item.quantity || 1),
+    (total, item) => total + item.price * item.quantity,
     0
   );
 
-  // Function to confirm order
+  // Confirm order
   const confirmOrder = () => {
-    navigate('/orders', { state: { cart } }); // Pass cart data to the orders page
+    navigate("/orders", { state: { cart } });
   };
 
   return (
@@ -51,7 +74,11 @@ const Cart = () => {
           <div className="cart-items">
             {cart.map((item) => (
               <div key={item.id} className="cart-item">
-                <img src={item.image} alt={item.name} className="cart-item-image" />
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="cart-item-image"
+                />
                 <div className="cart-item-details">
                   <h3 className="cart-item-name">{item.name}</h3>
                   <p className="cart-item-price">${item.price}</p>
@@ -62,7 +89,7 @@ const Cart = () => {
                     >
                       -
                     </button>
-                    <span className="quantity">{item.quantity || 1}</span>
+                    <span className="quantity">{item.quantity}</span>
                     <button
                       onClick={() => increaseQuantity(item.id)}
                       className="quantity-button"
@@ -82,10 +109,7 @@ const Cart = () => {
           </div>
           <div className="cart-summary">
             <h3 className="total-price">Total: ${totalPrice.toFixed(2)}</h3>
-            <button
-              onClick={confirmOrder}
-              className="confirm-order-button"
-            >
+            <button onClick={confirmOrder} className="confirm-order-button">
               Confirm Order
             </button>
           </div>
