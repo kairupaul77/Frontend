@@ -1,29 +1,25 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { UserContext } from "../Context/UserContext";
 
 export default function Register() {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [repeatPassword, setRepeatPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const { register, loading } = useContext(UserContext);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
   const navigate = useNavigate();
 
-  // ====> To Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate passwords
     if (password !== repeatPassword) {
-      setMessage("Passwords don't match");
+      alert("Passwords don't match");
       return;
     }
 
-    // Simulate successful registration
-    setMessage('Registration successful!');
-    setTimeout(() => {
-      navigate('/login'); // Redirect to login after a delay
-    }, 1500);
+    await register(name, email, password);
+    navigate("/login"); // Redirect to login page after registration
   };
 
   return (
@@ -35,8 +31,8 @@ export default function Register() {
           <label className="form-label">Username</label>
           <input
             type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             className="form-input"
             placeholder="Enter Username"
             required
@@ -79,11 +75,9 @@ export default function Register() {
           />
         </div>
 
-        <button type="submit" className="register-button">
-          Sign Up
+        <button type="submit" className="register-button" disabled={loading}>
+          {loading ? "Registering..." : "Sign Up"}
         </button>
-
-        {message && <p className="message">{message}</p>}
 
         <div className="register-link">
           Already have an account? <Link to="/login" className="login-redirect">Login</Link>
