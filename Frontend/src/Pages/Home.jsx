@@ -6,14 +6,14 @@ const Home = () => {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center p-12 rounded-lg bg-cover bg-center text-white"
+      className="container min-h-screen flex flex-col items-center justify-center p-12 rounded-lg bg-cover bg-center text-white"
       style={{
         backgroundImage: `url('https://cmkt-image-prd.freetls.fastly.net/0.1.0/ps/3683855/1820/1213/m1/fpnw/wm1/krqyfhubd7oft9ct47vf0c4iqejohkp7flkbgbunlmmgg57f8q5om1yzmga7jaod-.jpg?1512398578=&s=7dcf9d0943f23852b83ad73f84e51e40')`,
-        filter: "brightness(1.2)"
+        filter: "brightness(1.2)",
       }}
     >
       {/* Welcome Section */}
-      <h1 className="text-7xl font-extrabold mb-6 text-center text-white">
+      <h1 className="text-7xl font-extrabold mb-6 text-center text-black">
         Welcome & Savor the Experience
       </h1>
       <p className="text-2xl mb-8 text-center max-w-3xl text-white">
@@ -52,7 +52,7 @@ const Home = () => {
           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjAMLedZRk2kc2Gg7NC0jRaHIjxa1-vf-b_A&s",
           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqh23N9c_aH0PvHiaE-KNpcNP0ShomxKEqdQ&s",
           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSg2sGD0m7GqD3djELxtsNJ3yRXRbOMuY6ZoQ&s",
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzUXwxKjDkf17YKakug9okRsOuGVhZD8h6RA&s"
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzUXwxKjDkf17YKakug9okRsOuGVhZD8h6RA&s",
         ].map((src, index) => (
           <img
             key={index}
