@@ -1,7 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import React, { useState, useEffect, useContext } from "react";
 import { UserContext } from "../Context/UserContext.jsx";
-
 import "../App.css"; // Import the CSS file
 
 const Navbar = () => {
@@ -56,17 +55,28 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link to="/home" className="navbar-link">Home</Link>
-              <Link to="/menu" className="navbar-link">Menu</Link>
-              {cartCount > 0 && (
-                <Link to="/cart" className="navbar-link">
-                  Cart ({cartCount})
-                </Link>
+              {user.isAdmin ? (
+                <>
+                  <Link to="/menu" className="navbar-link">Menu</Link>
+                  <Link to="/orders" className="navbar-link">Orders</Link>
+                  <Link to="/admin-dashboard" className="navbar-link">Admin Dashboard</Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/home" className="navbar-link">Home</Link>
+                  <Link to="/menu" className="navbar-link">Menu</Link>
+                  {cartCount > 0 && (
+                    <Link to="/cart" className="navbar-link">
+                      Cart ({cartCount})
+                    </Link>
+                  )}
+                  <Link to="/orders" className="navbar-link">Orders</Link>
+                  {isCheckout && (
+                    <Link to="/checkout" className="navbar-link">Checkout</Link>
+                  )}
+                </>
               )}
-              <Link to="/orders" className="navbar-link">Orders</Link>
-              {isCheckout && (
-                <Link to="/checkout" className="navbar-link">Checkout</Link>
-              )}
+
               {/* Logout Button */}
               <button onClick={handleLogout} className="navbar-link logout-button">
                 Logout
