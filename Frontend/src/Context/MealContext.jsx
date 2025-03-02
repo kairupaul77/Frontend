@@ -44,74 +44,119 @@ export const MealProvider = ({ children }) => {
   };
 
   const updateMeal = async (mealId, updatedMeal) => {
-    if (!updatedMeal.name || !updatedMeal.price || !updatedMeal.image_url) {
-      console.error("Error: Missing required fields", updatedMeal);
-      return setError("All fields are required!");
-    }
-  
     try {
       const token = sessionStorage.getItem("token");
-      console.log("token is ",token)
       const response = await fetch(`http://localhost:5000/meal/update/${mealId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          name: updatedMeal.name,
-          price: updatedMeal.price,
-          image_url: updatedMeal.image_url,
-        }),
+        body: JSON.stringify(updatedMeal),
       });
-  
-      const responseData = await response.json();
-      console.log("Response from backend:", responseData);
-  
-      if (!response.ok) throw new Error(responseData.message || "Failed to update meal");
-  
+      if (!response.ok) throw new Error("Failed to update meal");
       await fetchMeals();
     } catch (err) {
-      console.error("Update Meal Error:", err.message);
+      setError(err.message);
+    }
+  };
+
+  const deleteMeal = async (mealId) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await fetch(`http://localhost:5000/meal/delete/${mealId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error("Failed to delete meal");
+      await fetchMeals();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  // Admin: Create a menu for a specific date
+  const createMenu = async (menuDate, mealIds) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await fetch("http://localhost:5000/menu", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ date: menuDate, meals: mealIds }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create menu");
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  // Get menu for a specific date
+  const getMenu = async (menuDate) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await fetch(`http://localhost:5000/menu/${menuDate}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch menu");
+      }
+      const data = await response.json();
+      setMeals(data.meals); // ✅ Update meals state with fetched menu
+    } catch (err) {
       setError(err.message);
     }
   };
   
 
-  const deleteMeal = async (mealId) => {
-    if (!mealId) {
-      console.error("Meal ID is missing!");
-      return;
-    }
-  
+  // Customer: Select a meal from the menu
+  const selectMeal = async (menuDate, mealId) => {
     try {
       const token = sessionStorage.getItem("token");
-      if (!token) {
-        throw new Error("User is not authenticated");
-      }
-  
-      const response = await fetch(`http://localhost:5000/meal/delete/${mealId}`, {
-        method: "DELETE",
+      const response = await fetch("http://localhost:5000/menu/select", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ Use correct formatting
+          Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({ date: menuDate, meal_id: mealId }),
       });
-  
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to delete meal");
+        throw new Error(errorData.error || "Failed to select meal");
       }
-  
-      console.log("Meal deleted successfully!");
-      await fetchMeals(); // ✅ Refresh meals after deleting
+      return await response.json();
     } catch (err) {
-      console.error("Delete Meal Error:", err.message);
+      setError(err.message);
     }
   };
-  
+
   return (
-    <MealContext.Provider value={{ meals, loading, error, addMeal, updateMeal, deleteMeal }}>
+    <MealContext.Provider
+      value={{
+        meals,
+        loading,
+        error,
+        addMeal,
+        updateMeal,
+        deleteMeal,
+        createMenu,
+        getMenu,
+        selectMeal,
+      }}
+    >
       {children}
     </MealContext.Provider>
   );
