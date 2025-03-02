@@ -13,7 +13,7 @@ const UserProvider = ({ children }) => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Fixed syntax
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -75,7 +75,6 @@ const UserProvider = ({ children }) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Login failed");
       console.log(data);
-      
 
       sessionStorage.setItem("token", data.access_token);
       sessionStorage.setItem("refresh_token", data.refresh_token);
@@ -91,24 +90,27 @@ const UserProvider = ({ children }) => {
     }
   };
 
+  
   const register = async (username, email, password) => {
     setLoading(true);
     try {
-      const res = await fetch("http://127.0.0.1:5000/register", {
+      const res = await fetch("http://127.0.0.1:5000/users", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
       });
   
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Registration failed");
+  
+      if (!res.ok) {
+        throw new Error(data.error || "Registration failed");
+      }
   
       toast.success("Registration successful");
+      return true; // Indicate success
     } catch (error) {
       toast.error(error.message);
+      return false; // Indicate failure
     } finally {
       setLoading(false);
     }

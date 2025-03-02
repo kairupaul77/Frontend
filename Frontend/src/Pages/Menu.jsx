@@ -4,14 +4,23 @@ import { MealContext } from "../Context/MealContext";
 
 const Menu = () => {
   const navigate = useNavigate();
-  const { meals } = useContext(MealContext);
+  const { meals, getMenu } = useContext(MealContext);
   const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem("cart")) || []);
   const [showToast, setShowToast] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+
+  useEffect(() => {
+    getMenu(selectedDate);
+  }, [selectedDate]);
 
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
     window.dispatchEvent(new Event("cartUpdated"));
   }, [cart]);
+
+  const handleDateChange = (event) => {
+    setSelectedDate(event.target.value);
+  };
 
   const addToCart = (meal) => {
     if (!cart.some((item) => item.id === meal.id)) {
@@ -28,6 +37,16 @@ const Menu = () => {
     <div className="container mx-auto px-6 py-10">
       <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Our Menu</h1>
       
+      <div className="text-center mb-6">
+        <label className="text-lg font-semibold mr-2">Select Date:</label>
+        <input
+          type="date"
+          value={selectedDate}
+          onChange={handleDateChange}
+          className="border px-4 py-2 rounded-md shadow-sm"
+        />
+      </div>
+      
       {showToast && (
         <div className="fixed top-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-md">
           Item added to cart!
@@ -38,20 +57,25 @@ const Menu = () => {
         {meals.length > 0 ? (
           meals.map((meal) => (
             <div key={meal.id} className="bg-white shadow-lg rounded-xl overflow-hidden transform hover:scale-105 transition duration-300">
-              <img src={meal.image_url} alt={meal.name} className="w-full h-48 object-cover" />
+              <img 
+                src={meal.image_url || "https://via.placeholder.com/150"} 
+                alt={meal.name} 
+                className="w-full h-48 object-cover" 
+                onError={(e) => e.target.src = "https://via.placeholder.com/150"} 
+              />
               <div className="p-4">
                 <h2 className="text-lg font-semibold text-gray-800">{meal.name}</h2>
                 <p className="text-gray-600">${meal.price.toFixed(2)}</p>
-                
+
                 {isAdded(meal) ? (
-                  <button 
+                  <button
                     className="w-full mt-4 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
                     onClick={goToCart}
                   >
                     View Cart
                   </button>
                 ) : (
-                  <button 
+                  <button
                     className="w-full mt-4 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition"
                     onClick={() => addToCart(meal)}
                   >
