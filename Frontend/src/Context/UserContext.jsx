@@ -7,9 +7,10 @@ const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Fetch current user
   const fetchCurrentUser = async (token) => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/current_user", {
+      const response = await fetch("https://pafaan-l0b6.onrender.com/current_user", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -26,6 +27,7 @@ const UserProvider = ({ children }) => {
 
       const userData = await response.json();
       console.log("User data:", userData);
+      sessionStorage.setItem("role", userData.role);
 
       if (userData.id) {
         setUser({ ...userData, isAdmin: userData.role === "admin" });
@@ -35,9 +37,10 @@ const UserProvider = ({ children }) => {
     }
   };
 
+  // Refresh JWT Token
   const refreshToken = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:5000/refresh", {
+      const res = await fetch("https://pafaan-l0b6.onrender.com/refresh", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh_token: sessionStorage.getItem("refresh_token") }),
@@ -63,10 +66,11 @@ const UserProvider = ({ children }) => {
     if (token) fetchCurrentUser(token);
   }, []);
 
+  // Email & Password Login
   const login = async ({ email, password, provider, token }) => {
     setLoading(true);
     try {
-      const res = await fetch("http://127.0.0.1:5000/login", {
+      const res = await fetch("https://pafaan-l0b6.onrender.com/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(provider ? { provider, token } : { email, password }),
@@ -90,35 +94,33 @@ const UserProvider = ({ children }) => {
     }
   };
 
-  
+  // Register User
   const register = async (username, email, password) => {
     setLoading(true);
     try {
-      const res = await fetch("http://127.0.0.1:5000/users", {
+      const res = await fetch("https://pafaan-l0b6.onrender.com/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
       });
-  
+
       const data = await res.json();
-  
-      if (!res.ok) {
-        throw new Error(data.error || "Registration failed");
-      }
-  
+      if (!res.ok) throw new Error(data.error || "Registration failed");
+
       toast.success("Registration successful");
-      return true; // Indicate success
+      return true;
     } catch (error) {
       toast.error(error.message);
-      return false; // Indicate failure
+      return false;
     } finally {
       setLoading(false);
     }
   };
-  
+
+  // Logout User
   const logout = async () => {
     try {
-      await fetch("http://127.0.0.1:5000/logout", {
+      await fetch("https://pafaan-l0b6.onrender.com/logout", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -135,8 +137,39 @@ const UserProvider = ({ children }) => {
     toast.success("Logged out");
   };
 
+  // Google Login
+  const loginWithGoogle = async (email) => {
+    try {
+      const res = await fetch("https://pafaan-l0b6.onrender.com/login_with_google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const response = await res.json();
+      console.log("Google login response:", response);
+
+      if (response.access_token) {
+
+
+        sessionStorage.setItem("token", response.access_token);
+        sessionStorage.setItem("refresh_token", response.refresh_token);
+        console.log("Token stored in sessionStorage:", response.access_token);
+        await fetchCurrentUser(response.access_token);
+
+        toast.success("Google Login Successful");
+        return true;
+      } else {
+        throw new Error("Google login failed");
+      }
+    } catch (error) {
+      console.error("Google login error:", error);
+      toast.error("Google login failed");
+    }
+  };
+
   return (
-    <UserContext.Provider value={{ user, login, register, logout, loading }}>
+    <UserContext.Provider value={{ user, login, register, logout, loginWithGoogle, loading }}>
       {children}
     </UserContext.Provider>
   );

@@ -1,9 +1,9 @@
 import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../Context/UserContext";
-import { useGoogleLogin } from "@react-oauth/google";
-import axios from "axios";
+import { GoogleLogin } from "@react-oauth/google";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { jwtDecode } from "jwt-decode";
 
 export default function Register() {
   const { register, loading } = useContext(UserContext);
@@ -11,7 +11,6 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
-  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
@@ -21,51 +20,28 @@ export default function Register() {
 
   // Function to handle normal registration and redirect to login
   const handleRegister = async () => {
-    setError("");
-
     if (password !== repeatPassword) {
-      setError("Passwords don't match");
       return;
     }
 
     const success = await register(name, email, password);
     if (success) {
       navigate("/login"); // Redirect to login page
-    } else {
-      setError("Registration failed. Please try again.");
     }
   };
 
-  // Google Register
-  const handleGoogleRegister = useGoogleLogin({
-    onSuccess: async (codeResponse) => {
-      try {
-        const { data } = await axios.get(
-          `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${codeResponse.access_token}`,
-          {
-            headers: {
-              Authorization: `Bearer ${codeResponse.access_token}`,
-              Accept: "application/json",
-            },
-          }
-        );
-
-        const success = await register(data.name, data.email, null, "google", codeResponse.access_token);
-        if (success) {
-          navigate("/login");
-        } else {
-          setError("Google registration failed. Please try again.");
-        }
-      } catch (err) {
-        console.log("Google register error:", err);
-        setError("Google registration failed. Please try again.");
+  // Handle Google Register
+  const handleGoogleSignUp = async (credentialResponse) => {
+    try {
+      const user_details = jwtDecode(credentialResponse.credential);
+      const success = await register(user_details.name, user_details.email, "google_oauth_user");
+      if (success) {
+        navigate("/login");
       }
-    },
-    onError: (error) => {
-      console.log("Register Failed:", error);
-      setError("Google registration failed. Please try again.");
-    },
-  });
+    } catch (error) {
+      console.error("Google Sign-Up Failed", error);
+    }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -77,8 +53,6 @@ export default function Register() {
         className="bg-white p-8 rounded-lg shadow-md w-96"
       >
         <h3 className="text-2xl font-bold text-center mb-4">Register</h3>
-
-        {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
 
         <div className="mb-4">
           <label className="block text-gray-700">Username</label>
@@ -152,19 +126,25 @@ export default function Register() {
           Already have an account? <Link to="/login" className="text-blue-500">Login</Link>
         </div>
 
-        <div className="mt-4 flex justify-center">
-          <button
-            type="button"
-            onClick={handleGoogleRegister}
-            className="w-full bg-red-500 text-white py-2 rounded-lg flex items-center justify-center hover:bg-red-600"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png"
-              alt="Google Logo"
-              className="w-5 h-5 mr-2"
+        {/* Social Login Buttons */}
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-4 flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSignUp}
+              onError={() => console.log("Google Sign-Up Failed")}
             />
-            Sign up with Google
-          </button>
+          </div>
         </div>
       </form>
     </div>

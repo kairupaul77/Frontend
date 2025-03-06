@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import { ToastContainer, toast } from 'react-toastify';
+import React, { useState, useEffect, useContext } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import UserProvider from "./Context/UserContext.jsx";
+import UserProvider, { UserContext } from "./Context/UserContext.jsx";
 import { MealProvider } from './Context/MealContext';
 import { OrderProvider } from './Context/OrderContext';
 import Navbar from './Components/Navbar';
@@ -21,6 +21,12 @@ import Terms from './Pages/Terms';
 import Privacy from './Pages/Privacy';
 import './index.css';
 
+function ProtectedRoute({ element }) {
+  const { user } = useContext(UserContext);
+  
+  return user ? element : <Navigate to="/login" replace />;
+}
+
 function App() {
   const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem('cart')) || []);
   const [meals, setMeals] = useState([]);
@@ -29,50 +35,40 @@ function App() {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  const responseMessage = (response) => {
-    console.log("Google Login Success:", response);
-    toast.success("Google login successful!");
-  };
-
-  const errorMessage = () => {
-    console.error("Google Login Failed");
-    toast.error("Google login failed. Please try again.");
-  };
-
   return (
-    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
-      <BrowserRouter>
-        <UserProvider>
-          <MealProvider>
+    <BrowserRouter>
+      <UserProvider>
+        <MealProvider>
           <OrderProvider>
             <ToastContainer position="top-right" autoClose={3000} />
             <div className="app-container">
               <Navbar cartCount={cart.length} />
               <div className="main-content">
                 <Routes>
-                  <Route path="/home" element={<Home />} />
                   <Route path="/login" element={<Login />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/register" element={<Register />} />
-                  <Route path="/cart" element={<Cart cart={cart} setCart={setCart} />} />
-                  <Route path="/menu" element={<Menu meals={meals} />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/admin-dashboard" element={<AdminDashboard />} />
-                  <Route path="/orders" element={<Orders />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/privacy" element={<Privacy />} />
+
+                  {/* Protected Routes */}
+                  <Route path="/home" element={<ProtectedRoute element={<Home />} />} />
+                  <Route path="/cart" element={<ProtectedRoute element={<Cart cart={cart} setCart={setCart} />} />} />
+                  <Route path="/menu" element={<ProtectedRoute element={<Menu meals={meals} />} />} />
+                  <Route path="/checkout" element={<ProtectedRoute element={<Checkout />} />} />
+                  <Route path="/admin-dashboard" element={<ProtectedRoute element={<AdminDashboard />} />} />
+                  <Route path="/orders" element={<ProtectedRoute element={<Orders />} />} />
+
+                  {/* Default Route */}
+                  <Route path="*" element={<Navigate to="/login" replace />} />
                 </Routes>
-                <div className="google-login-container">
-                  <GoogleLogin onSuccess={responseMessage} onError={errorMessage} />
-                </div>
               </div>
               <Footer />
             </div>
-            </OrderProvider>
-          </MealProvider>
-        </UserProvider>
-      </BrowserRouter>
-    </GoogleOAuthProvider>
+          </OrderProvider>
+        </MealProvider>
+      </UserProvider>
+    </BrowserRouter>
   );
 }
 
