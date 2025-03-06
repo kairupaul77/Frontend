@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useOrder } from "../Context/OrderContext"; // Correct import
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { placeOrder } = useOrder(); // Correct function usage
   const LOCAL_STORAGE_KEY = "cart";
 
   const [cart, setCart] = useState([]);
+
+  // Get role and token from sessionStorage
+  const role = sessionStorage.getItem("role");
+  const token = sessionStorage.getItem("token");
 
   useEffect(() => {
     const storedCart = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -25,9 +27,19 @@ const Cart = () => {
     window.dispatchEvent(new Event("cartUpdated"));
   }, [cart]);
 
+  // Listen for checkout success event and reset cart
   useEffect(() => {
-    console.log("Cart Items:", cart);
-  }, [cart]);
+    const handleCheckoutSuccess = () => {
+      setCart([]);
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+    };
+
+    window.addEventListener("checkoutSuccess", handleCheckoutSuccess);
+
+    return () => {
+      window.removeEventListener("checkoutSuccess", handleCheckoutSuccess);
+    };
+  }, []);
 
   const increaseQuantity = (id) => {
     setCart((prevCart) =>
@@ -56,30 +68,29 @@ const Cart = () => {
     0
   );
 
-  const confirmOrder = async () => {
+  const proceedToCheckout = () => {
     if (cart.length === 0) {
       return alert("Your cart is empty.");
     }
 
-    const orderData = {
-      items: cart.map((item) => ({
-        id: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-      })),
-      total: totalPrice.toFixed(2),
-    };
+    navigate("/checkout", { state: { cart, total: totalPrice.toFixed(2) } });
+  };
 
-    try {
-      await placeOrder(orderData); // Send order to backend using OrderContext
-      setCart([]);
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
-      navigate("/orders"); // Navigate to orders page
-    } catch (error) {
-      console.error("Error placing order:", error);
-      alert("Failed to place order. Please try again.");
-    }
+  // ✅ Hide Cart if user is Admin
+  if (role === "admin") {
+    return null; // Do not render anything
+  }
+
+  const handlePaymentSuccess = () => {
+    // Clear the cart after successful payment
+    setCart([]);
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    alert("Payment successful! Thank you for your purchase.");
+
+    // Dispatch event to update cart across components
+    window.dispatchEvent(new Event("checkoutSuccess"));
+
+    navigate("/order-summary"); // Redirect to order summary or a confirmation page
   };
 
   return (
@@ -102,7 +113,7 @@ const Cart = () => {
                 />
                 <div className="ml-4 flex-1">
                   <h3 className="text-lg font-semibold">{item.name}</h3>
-                  <p className="text-gray-600">${Number(item.price).toFixed(2)}</p>
+                  <p className="text-gray-600">Ksh {Number(item.price).toFixed(2)}</p>
                   <div className="flex items-center mt-2">
                     <button
                       onClick={() => decreaseQuantity(item.id)}
@@ -129,13 +140,20 @@ const Cart = () => {
             ))}
           </div>
           <div className="w-full max-w-3xl mt-6 p-6 bg-white shadow-md rounded-lg">
-            <h3 className="text-xl font-bold">Total: ${totalPrice.toFixed(2)}</h3>
+            <h3 className="text-xl font-bold">Total: Ksh {totalPrice.toFixed(2)}</h3>
             <button
-              onClick={confirmOrder}
+              onClick={proceedToCheckout}
               className="w-full mt-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
             >
-              Confirm Order
+              Checkout
             </button>
+            {/* Uncomment this button to simulate a successful payment */}
+            {/* <button
+              onClick={handlePaymentSuccess}
+              className="w-full mt-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+            >
+              Simulate Payment Success
+            </button> */}
           </div>
         </>
       )}

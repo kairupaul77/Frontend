@@ -1,24 +1,52 @@
-import React, { useEffect } from "react";
+import React, { useState } from "react";
 import { useOrder } from "../Context/OrderContext";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; // Make sure to import toast for notifications
 
 const Orders = () => {
-  const { orders, revenue, loading, fetchOrders, fetchOrderHistory, changeOrder } = useOrder();
+  const {
+    orders, 
+    revenue, 
+    loading, 
+    fetchOrders, 
+    fetchOrderHistory, 
+  } = useOrder();
+  
   const navigate = useNavigate();
   const token = sessionStorage.getItem("token");
-  const role = sessionStorage.getItem("role"); // Retrieve role from session storage
+  const role = sessionStorage.getItem("role");
+  const email = sessionStorage.getItem("email"); // Get email from sessionStorage
 
-  useEffect(() => {
-    if (!token) {
-      navigate("/login");
+  const [manualFetch, setManualFetch] = useState(false);
+
+  // Check if token exists; if not, redirect to login page
+  if (!token) {
+    navigate("/login"); // Redirect if not authenticated
+    return null;
+  }
+
+  // Handle admin action to change the order status
+  const handleAdminAction = (orderId, newMenuId) => {
+    const userRole = sessionStorage.getItem("role").trim().toLowerCase();
+
+    if (userRole !== "admin") {
+      toast.error("Unauthorized access. Admins only.");
+      console.log(`Unauthorized access attempt by user: ${email}`);
       return;
     }
+
+    changeOrder(orderId, newMenuId);
+  };
+
+  // Manually fetch orders for Admin or Customers
+  const handleFetchOrders = () => {
     if (role === "admin") {
-      fetchOrders(); // Fetch all orders for admin
-    } else {
-      fetchOrderHistory(); // Fetch only user's order history
+      fetchOrders();
+    } else if (role === "customer") {
+      fetchOrderHistory();
     }
-  }, [role, token]);
+    setManualFetch(true); // To show the orders once fetched
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -28,26 +56,21 @@ const Orders = () => {
 
       {loading ? (
         <p className="text-center text-gray-600">Loading orders...</p>
-      ) : orders.length === 0 ? (
+      ) : manualFetch && orders.length === 0 ? (
         <p className="text-center text-gray-500">No orders found.</p>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {orders.map((order) => (
             <div key={order.id} className="bg-white shadow-md rounded-lg p-4 border border-gray-200">
               <h3 className="text-lg font-semibold text-gray-700">Order #{order.id}</h3>
-              <p className="text-gray-600">Total: <span className="font-medium">${order.totalPrice}</span></p>
-              <p className={`text-sm font-medium ${order.status === "Completed" ? "text-green-600" : "text-red-500"}`}>
-                Status: {order.status}
+              <p className="text-gray-600">
+                Total: <span className="font-medium">KSh {order.total_price ? order.total_price.toLocaleString() : "0"}</span>
               </p>
 
-              {role === "admin" && (
-                <button
-                  onClick={() => changeOrder({ id: order.id, status: "Completed" })}
-                  className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-all"
-                >
-                  Mark as Completed
-                </button>
-              )}
+              {/* Display the correct order status */}
+              <p className={`text-sm font-medium ${role === "customer" || order.payment_status === "Updated" ? "text-green-600" : "text-red-500"}`}>
+  Status: {role === "customer" ? "Paid" : order.payment_status === "Updated" ? "Updated" : "Updated"}
+</p>
             </div>
           ))}
         </div>
@@ -55,18 +78,9 @@ const Orders = () => {
 
       {role === "admin" && (
         <div className="bg-gray-100 p-4 mt-6 rounded-lg text-center shadow">
-          <h3 className="text-lg font-semibold text-gray-800">Total Revenue: <span className="text-blue-600">${revenue}</span></h3>
-        </div>
-      )}
-
-      {role !== "admin" && (
-        <div className="text-center mt-6">
-          <button
-            onClick={() => navigate("/checkout")}
-            className="bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg text-lg transition-all shadow-md"
-          >
-            Proceed to Checkout
-          </button>
+          <h3 className="text-lg font-semibold text-gray-800">
+            Total Revenue: <span className="text-blue-600">KSh {revenue ? revenue.toLocaleString() : "0"}</span>
+          </h3>
         </div>
       )}
     </div>

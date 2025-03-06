@@ -7,17 +7,21 @@ export const MealProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchMeals();
-  }, []);
+  // useEffect(() => {
+  //   fetchMeals();
+  // }, []);
 
   const fetchMeals = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5000/meal/all");
+      const response = await fetch("https://pafaan-l0b6.onrender.com/meal/all");
       if (!response.ok) throw new Error("Failed to fetch meals");
       const data = await response.json();
+      console.log("data in fetch meals ",)
       setMeals(data.meals);
+
+
+      return data.meals
     } catch (err) {
       setError(err.message);
     } finally {
@@ -28,7 +32,7 @@ export const MealProvider = ({ children }) => {
   const addMeal = async (meal) => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/meal/add", {
+      const response = await fetch("https://pafaan-l0b6.onrender.com/meal/add", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,7 +50,7 @@ export const MealProvider = ({ children }) => {
   const updateMeal = async (mealId, updatedMeal) => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/meal/update/${mealId}`, {
+      const response = await fetch(`https://pafaan-l0b6.onrender.com/meal/update/${mealId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -64,7 +68,7 @@ export const MealProvider = ({ children }) => {
   const deleteMeal = async (mealId) => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/meal/delete/${mealId}`, {
+      const response = await fetch(`https://pafaan-l0b6.onrender.com/meal/delete/${mealId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -82,7 +86,7 @@ export const MealProvider = ({ children }) => {
   const createMenu = async (menuDate, mealIds) => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/menu", {
+      const response = await fetch("https://pafaan-l0b6.onrender.com/menu", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -103,7 +107,7 @@ export const MealProvider = ({ children }) => {
   const getMenu = async (menuDate) => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/menu/${menuDate}`, {
+      const response = await fetch(`https://pafaan-l0b6.onrender.com/menu/${menuDate}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -125,7 +129,7 @@ export const MealProvider = ({ children }) => {
   const selectMeal = async (menuDate, mealId) => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/menu/select", {
+      const response = await fetch("https://pafaan-l0b6.onrender.com/menu/select", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -149,11 +153,13 @@ export const MealProvider = ({ children }) => {
         meals,
         loading,
         error,
+        fetchMeals,
         addMeal,
         updateMeal,
         deleteMeal,
         createMenu,
         getMenu,
+        
         selectMeal,
       }}
     >
